@@ -1,0 +1,52 @@
+Create Key Pair
+====================================================================================================================================================================================================
+Client --Request NewPair-> Guacamole API
+                           Guacamole API --Validate ClientToken-> Keystone
+                           Guacamole API <-ClientToken Valid----- Keystone
+                           Guacamole API --Create NewPairJob---------------> AMQP
+Client <-Obj Pending New-- Guacamole API
+                                                                             AMQP --Send Job-> Guacamole Worker
+                                                                                               Guacamole Worker --Invoke Driver-> Guacamole Driver
+                                                                                                                                  Guacamole Driver --Get Private Keys-> Barbican
+                                                                                                                                  Guacamole Driver <-Private Keys------ Barbican
+                                                                                                                                  Guacamole Driver --Invoke Method Create--------> Method Binary
+                                                                                                                                  Guacamole Driver <-Key Pair--------------------- Method Binary
+                                                                                               Guacamole Worker <-Key Pair------- Guacamole Driver
+                                                                                               Guacamole Worker --Store Private Key-----------------------------------> Barbican
+                           Guacamole API <-Store Certificate + Barbican ID-------------------- Guacamole Worker
+                           Guacamole API --Store Certificate + Barbican ID-----------------------------------------------------------------------------------------------------------------------> DB
+=====================================================================================================================================================================================================
+
+
+Obtain Key Pair
+=====================================================================================================================================================================================================
+Client --Get Key Pair ---> Guacamole API
+                           Guacamole API --Validate ClientToken-> Keystone
+                           Guacamole API <-ClientToken Valid----- Keystone
+                           Guacamole API --Get Certificate + Barbican ID-------------------------------------------------------------------------------------------------------------------------> DB
+                           Guacamole API <-Certificate + Barbican ID------------------------------------------------------------------------------------------------------------------------------ DB
+Client <-Cert+Barbican ID- Guacamole API
+Client --Get Private Key from Barbican ID-----------------------------------------------------------------------------------------------------------------------------> Barbican
+Client <-Private Key--------------------------------------------------------------------------------------------------------------------------------------------------- Barbican
+=====================================================================================================================================================================================================
+
+
+Delete Key Pair
+=====================================================================================================================================================================================================
+Client --Delete Key Pair-> Guacamole API
+                           Guacamole API --Validate ClientToken-> Keystone
+                           Guacamole API <-ClientToken Valid----- Keystone
+                           Guacamole API --Create DeletePairJob------------> AMQP
+Client <-Obj Pending Del-- Guacamole API
+                                                                             AMQP --Send Job-> Guacamole Worker
+                                                                                               Guacamole Worker --Invoke Driver-> Guacamole Driver
+                                                                                                                                  Guacamole Driver --Get Private Keys-> Barbican
+                                                                                                                                  Guacamole Driver <-Private Keys------ Barbican
+                                                                                                                                  Guacamole Driver --Invoke Method Revoke--------> Method Binary
+                                                                                                                                  Guacamole Driver <-CRL-------------------------- Method Binary
+                                                                                               Guacamole Worker <-CRL------------ Guacamole Driver
+                                                                                               Guacamole Worker --Delete Private Key ---------------------------------> Barbican
+                           Guacamole API <-Store CRL + Delete Certificate--------------------- Guacamole Worker
+                           Guacamole API --Store CRL + Delete Certificate-----------------------------------------------------------------------------------------------------------------------> DB
+=====================================================================================================================================================================================================
+
