@@ -1,0 +1,202 @@
+openapi: 3.0.0
+info:
+  description: Guacamole-API
+  version: "1.0.0"
+  title: Guacamole-API
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags: []
+paths:
+  /v0/key-pair:
+    post:
+      summary: Create new Key Pair
+      operationId: CreateNewPairJob
+      security: 
+      - X-Auth-Token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPair'
+      responses:
+        '202':
+          description: NewPairJob
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PairIndex'
+        '400':
+          description: Error occured
+    get:
+      summary: List Key Pairs
+      operationId: ListPairs
+      security: 
+      - X-Auth-Token: []
+      responses:
+        '200':
+          description: List Pairs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PairIndex'
+        '400':
+          description: Error occured
+  /v0/key-pair/{uuid}:
+    get:
+      summary: Retrieve Public-Key and Barbican ID
+      operationId: GetPair
+      security: 
+      - X-Auth-Token: []
+      tags: []
+      parameters: 
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      responses:
+        '204':
+          description: CreateNewPairJob not complete yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PairIndex'
+        '200':
+          description: Retrieve Public-Key and Barbican ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pair'
+        '400':
+          description: Error occured
+    delete:
+      summary: Delete Key-Pair
+      operationId: DeletePair
+      security:
+      - X-Auth-Token: []
+      tags: []
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      responses:
+        '200':
+          description: Deleted Key-Pair
+        '400':
+          description: Error occured
+components:
+  securitySchemes:
+    X-Auth-Token:
+      name: X-Auth-Token
+      type: apiKey
+      in: header
+  schemas:
+    Pair:
+      type: object
+      required:
+        - id
+        - name
+        - subject
+        - issue_date
+        - expiry_date
+        - private_key
+        - public_key
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID to Self
+        name:
+          type: string
+          description: Certificate Name
+        subject:
+          $ref: '#/components/schemas/Subject'
+        issue_date:
+          type: string
+          format: dateTime
+          description: Issue DateTime
+        expiry_date:
+          type: string
+          format: dateTime
+          description: Expiry DateTime
+        private_key:
+          type: string
+          format: uuid
+          description: Barbican Secret ID
+        public_key:
+          type: string
+          description: Public Key Content
+    NewPair:
+      type: object
+      required:
+        - expiry_date
+        - subject
+        - name
+      properties:
+        subject:
+          $ref: '#/components/schemas/Subject'
+        name:
+          type: string
+          description: Certificate Name
+        expirt_date:
+          type: string
+          format: dateTime
+          description: Expiry DateTime
+    PairIndex:
+      type: object
+      required:
+        - id
+        - name
+        - expiry_date
+        - issue_date
+        - subject
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID to Self
+        name:
+          type: string
+          description: Certificate Name
+        expirt_date:
+          type: string
+          format: dateTime
+          description: Expiry DateTime
+        issue_date:
+          type: string
+          format: dateTime
+          description: Issue DateTime
+        subject:
+          $ref: '#/components/schemas/Subject'
+    Subject:
+      type: object
+      description: Subject Object for Certificates
+      required:
+        - CN
+        - O
+      properties:
+        CN:
+          type: string
+          description: Common Name
+        O:
+          type: string
+          description: Organization
+        OU:
+          type: string
+          description: Organizational Unit
+        L:
+          type: string
+          description: Location
+        ST:
+          type: string
+          description: State
+        C:
+          type: string
+          description: Country
